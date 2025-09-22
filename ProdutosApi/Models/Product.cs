@@ -25,7 +25,7 @@ namespace ProdutosApi.Models
 
         public int Stock { get; set; }
         public DateTime RegistrationDate { get; set; }
-        public Category Category { get; set; }
+        public Category? Category { get; set; }
 
         [Required]
         public int CategoryId { get; set; }
