@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProdutosApi.Validations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -8,8 +9,9 @@ namespace ProdutosApi.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage="O nome é obrigatório")]
         [StringLength(80)]
+        [FirstLetterCapitalized] //Validação personalizada
         public string Name { get; set; }
 
         [Required]
@@ -24,7 +26,10 @@ namespace ProdutosApi.Models
         [StringLength(2000)]
         public string ImageUrl { get; set; }
 
+        [Required]
         public int Stock { get; set; }
+
+        [Required]
         public DateTime RegistrationDate { get; set; }
 
         [JsonIgnore] //Esse atributo faz com que a propriedade especificada não seja convertida para JSON na serialização (transformação do objeto C# para JSON) 
