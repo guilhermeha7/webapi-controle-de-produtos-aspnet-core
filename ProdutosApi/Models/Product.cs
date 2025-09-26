@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ProdutosApi.Models
 {
@@ -25,6 +26,8 @@ namespace ProdutosApi.Models
 
         public int Stock { get; set; }
         public DateTime RegistrationDate { get; set; }
+
+        [JsonIgnore] //Esse atributo faz com que a propriedade especificada não seja convertida para JSON na serialização (transformação do objeto C# para JSON) 
         public Category? Category { get; set; }
 
         [Required]

@@ -19,9 +19,9 @@ namespace ProdutosApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> Get() //ActionResult retorna um status code, além do tipo especificado
+        public async Task<ActionResult<IEnumerable<Product>>> GetAsync() //ActionResult<T> retorna um status code, além do tipo especificado
         {
-            var products = _context.Produtos.ToList();
+            var products = await _context.Produtos.AsNoTracking().ToListAsync();
 
             if (products is null)
             {
@@ -32,9 +32,9 @@ namespace ProdutosApi.Controllers
         }
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método
-        public ActionResult<Product> Get(int id)
+        public async Task<ActionResult<Product>> GetAsync(int id)
         {
-            var product = _context.Produtos.FirstOrDefault(p => p.Id == id);
+            var product = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
 
             if (product is null)
             {
@@ -45,7 +45,7 @@ namespace ProdutosApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post(Product product) //No parâmetro do método Post ou Put se coloca o body
+        public async Task<ActionResult> PostAsync([FromBody] Product product) //No parâmetro do método Post ou Put se coloca o body
         {
             if (product is null)
             {
@@ -53,14 +53,14 @@ namespace ProdutosApi.Controllers
             }
 
             _context.Produtos.Add(product);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             //Retorna 201 Created, inclui no cabeçalho da resposta a URL do recurso e envia o produto no body da response
             return new CreatedAtRouteResult("GetProduct", new { id = product.Id }, product);
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, Product product)  
+        public async Task<ActionResult> PutAsync(int id, Product product)  
         {
             if (id != product.Id)
             {
@@ -68,15 +68,15 @@ namespace ProdutosApi.Controllers
             }
 
             _context.Entry(product).State = EntityState.Modified; //Marca esta entidade como modificada, para que o EF gere um UPDATE no banco usando o Id dela como chave
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(product); //No parâmetro do método Ok se coloca o vai ser mostrado na response
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> DeleteAsync(int id)
         {
-            var product = _context.Produtos.FirstOrDefault(p => p.Id == id);
+            var product = await _context.Produtos.FirstOrDefaultAsync(p => p.Id == id);
 
             if (product is null)
             {
@@ -84,7 +84,7 @@ namespace ProdutosApi.Controllers
             }
 
             _context.Produtos.Remove(product);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok();
         }

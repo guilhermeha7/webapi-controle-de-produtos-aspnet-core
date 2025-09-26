@@ -11,8 +11,9 @@ namespace ProdutosApi
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddControllers().AddJsonOptions(options=>
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles); //Ignora referência cíclica. Olhar vídeo "Ajustes e Otimizações - Serialização JSON" do curso Web Api Essencial para saber mais
 
-            builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
