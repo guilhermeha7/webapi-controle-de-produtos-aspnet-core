@@ -12,10 +12,12 @@ namespace ProdutosApi.Controllers
     {
         private readonly AppDbContext _context;
 
+
         public CategoriesController(AppDbContext context)
         {
             _context = context;
         }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetAsync()
@@ -25,11 +27,13 @@ namespace ProdutosApi.Controllers
             return categories;
         }
 
+
         [HttpGet("products")]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategoriesWithProductsAsync()
         {
             return await _context.Categorias.AsNoTracking().Include(c => c.Products).ToListAsync();
         }
+
 
         [HttpGet("{id:int}", Name = "GetCategory")]
         public async Task<ActionResult<Category>> GetAsync(int id)
@@ -43,6 +47,7 @@ namespace ProdutosApi.Controllers
 
             return category;
         }
+
 
         [HttpPost]
         public async Task<ActionResult> PostAsync(Category category)
@@ -58,6 +63,7 @@ namespace ProdutosApi.Controllers
             return new CreatedAtRouteResult("GetCategory", new { id = category.Id }, category);
             //return new CreatedAtRouteResult("GetProduct", new { id = product.Id }, product);
         }
+
 
         [HttpPut("{id:int}")]
         public async Task<ActionResult> PutAsync(int id, Category category)
@@ -81,6 +87,7 @@ namespace ProdutosApi.Controllers
 
             return Ok(category);
         }
+
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteAsync(int id)

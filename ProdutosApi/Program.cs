@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
+using ProdutosApi.Extensions;
 
 namespace ProdutosApi
 {
@@ -24,7 +25,6 @@ namespace ProdutosApi
                 options.UseMySql(mySqlConnection,
                 ServerVersion.AutoDetect(mySqlConnection)));
 
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -32,6 +32,7 @@ namespace ProdutosApi
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                app.ConfigureExceptionHandler();
             }
 
             app.UseHttpsRedirection();

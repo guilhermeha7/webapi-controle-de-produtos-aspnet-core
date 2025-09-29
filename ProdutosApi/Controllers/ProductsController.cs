@@ -12,14 +12,19 @@ namespace ProdutosApi.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        //É necessário definir IConfiguration como dependência para conseguir pegar valores de chaves do arquivo appsettings.json 
+        private readonly IConfiguration _configuration; 
 
-        public ProductsController(AppDbContext context)
+
+        public ProductsController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAsync() //ActionResult<T> retorna um status code, além do tipo especificado
+        public async Task<ActionResult<IEnumerable<Product>>> GetAsync() //ActionResult<T> retorna status codes, além do tipo especificado
         {
             var products = await _context.Produtos.AsNoTracking().ToListAsync();
 
@@ -30,6 +35,7 @@ namespace ProdutosApi.Controllers
 
             return products;
         }
+
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método
         public async Task<ActionResult<Product>> GetAsync(int id)
@@ -43,6 +49,7 @@ namespace ProdutosApi.Controllers
 
             return product;
         }
+
 
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] Product product) //No parâmetro do método Post ou Put se coloca o body
@@ -59,8 +66,9 @@ namespace ProdutosApi.Controllers
             return new CreatedAtRouteResult("GetProduct", new { id = product.Id }, product);
         }
 
+
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> PutAsync(int id, Product product)  
+        public async Task<ActionResult> PutAsync(int id, Product product)
         {
             if (id != product.Id)
             {
@@ -72,6 +80,7 @@ namespace ProdutosApi.Controllers
 
             return Ok(product); //No parâmetro do método Ok se coloca o vai ser mostrado na response
         }
+
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteAsync(int id)
@@ -87,6 +96,23 @@ namespace ProdutosApi.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+
+        [HttpGet("ExibindoValoresDeAppSettings")]
+        public string GetAppSettingsValues()
+        {
+            string chave1 = _configuration["chave1"];
+            string chave1Secao = _configuration["secao1:chave1"];
+            return $"Chave 1: {chave1}\n"+
+                   $"Chave1Secao: {chave1Secao}";
+        }
+
+
+        [HttpGet("TratamentoDeExcecaoInesperada")]
+        public ActionResult GetUnexpectedException()
+        {
+            throw new Exception("Erro inesperado");
         }
     }
 }
