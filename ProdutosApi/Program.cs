@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
 using ProdutosApi.Extensions;
+using ProdutosApi.Repositories;
 
 namespace ProdutosApi
 {
@@ -14,6 +15,7 @@ namespace ProdutosApi
             // Add services to the container.
             builder.Services.AddControllers().AddJsonOptions(options=>
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles); //Ignora referência cíclica. Olhar vídeo "Ajustes e Otimizações - Serialização JSON" do curso Web Api Essencial para saber mais
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -32,7 +34,8 @@ namespace ProdutosApi
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-                app.ConfigureExceptionHandler();
+                app.ConfigureExceptionHandler(); //Tratamento de erros inesperados
+
             }
 
             app.UseHttpsRedirection();

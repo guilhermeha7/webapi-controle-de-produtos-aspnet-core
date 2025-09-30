@@ -13,19 +13,22 @@ namespace ProdutosApi.Controllers
     {
         private readonly AppDbContext _context;
         //É necessário definir IConfiguration como dependência para conseguir pegar valores de chaves do arquivo appsettings.json 
-        private readonly IConfiguration _configuration; 
+        private readonly IConfiguration _configuration;
+        private readonly ILogger _logger;
 
 
-        public ProductsController(AppDbContext context, IConfiguration configuration)
+        public ProductsController(AppDbContext context, IConfiguration configuration, ILogger<ProductsController> logger) //O <T> de ILogger<ProductsController> serve só para dizer de qual classe está vindo o log 
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetAsync() //ActionResult<T> retorna status codes, além do tipo especificado
         {
+            _logger.LogInformation("::::::::::::::: GET /products :::::::::::::::");
             var products = await _context.Produtos.AsNoTracking().ToListAsync();
 
             if (products is null)

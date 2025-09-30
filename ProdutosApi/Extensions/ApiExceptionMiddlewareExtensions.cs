@@ -8,11 +8,11 @@ namespace ProdutosApi.Extensions
 {
     public static class ApiExceptionMiddlewareExtensions
     {
-        public static void ConfigureExceptionHandler(this IApplicationBuilder app) //Adiciona um método de extensão à interface IApplicationBuilder 
+        public static void ConfigureExceptionHandler(this IApplicationBuilder app) //Adiciona este método de extensão à interface IApplicationBuilder 
         {
             app.UseExceptionHandler(appError =>
             {
-                appError.Run(async context =>
+                appError.Run(async context => //context contém informações como o Request (o que o cliente enviou) e o Response (o que você vai enviar de volta).
                 {
                     context.Response.ContentType = "application/json";
 

@@ -14,7 +14,7 @@ namespace ProdutosApi.Models
         [Required] 
         [StringLength(2000)] 
         public string ImageUrl { get; set; }
-        public ICollection<Product> Products { get; set; }
+        public ICollection<Product>? Products { get; set; } //O ? indica que uma categoria não precisa ter uma lista de produtos associada. Com isso, o ASP.NET não lança exceção se for tentar criar uma categoria sem produtos
 
         public Category()
         {
