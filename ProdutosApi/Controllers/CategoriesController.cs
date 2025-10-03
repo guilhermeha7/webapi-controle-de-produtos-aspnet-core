@@ -39,7 +39,7 @@ namespace ProdutosApi.Controllers
         [HttpGet("{id:int}", Name = "GetCategory")]
         public ActionResult<Category> Get(int id)
         {
-            Category category = _repository.Get(id);
+            Category category = _repository.GetByIdAsNoTracking(c => c.Id == id);
             
             if (category is null)
             {
@@ -58,12 +58,12 @@ namespace ProdutosApi.Controllers
                 return BadRequest("Não é possível cadastrar uma categoria vazia");
             }
             
-            //Se o id digitado da categoria já existe no banco de dados, então não deixe cadastrar
-            Category existingCategory = _repository.Get(category.Id);
+            //Se a categoria já existe no banco de dados, então não deixe cadastrar
+            Category existingCategory = _repository.GetByIdAsNoTracking(c => c.Id == category.Id);
 
             if (existingCategory != null)
             {
-                return BadRequest("Categoria com id já existente");
+                return BadRequest("Uma categoria com esse id já existe no banco de dados");
             }
 
             _repository.Create(category);
@@ -75,16 +75,16 @@ namespace ProdutosApi.Controllers
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Category category)
         {
-            var existingCategory = _repository.Get(id);
+            if (category.Id != id)
+            {
+                return BadRequest("Não é possível mudar o valor da chave primária.");
+            }
+
+            var existingCategory = _repository.GetByIdAsNoTracking(c => c.Id == id);
 
             if (existingCategory is null)
             {
                 return NotFound("Categoria não encontrada");
-            }
-
-            if (category.Id != id)
-            {
-                return BadRequest("Não é possível mudar o valor da chave primária.");
             }
 
             _repository.Update(category);
@@ -96,14 +96,14 @@ namespace ProdutosApi.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var category = _repository.Get(id);
+            var category = _repository.GetById(c => c.Id == id);
 
             if (category is null)
             {
                 return NotFound("Categoria não encontrada");
             }
 
-            _repository.Delete(id);
+            _repository.Delete(category);
 
             return Ok();
         }

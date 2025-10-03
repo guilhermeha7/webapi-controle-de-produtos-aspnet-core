@@ -32,7 +32,7 @@ namespace ProdutosApi.Models
         [Required]
         public DateTime RegistrationDate { get; set; }
 
-        [JsonIgnore] //Esse atributo faz com que a propriedade especificada não seja convertida para JSON na serialização (transformação do objeto C# para JSON) 
+        [JsonIgnore] //Esse atributo faz com que a propriedade não seja convertida para JSON na serialização (transformação do objeto C# para JSON) 
         public Category? Category { get; set; }
 
         [Required]

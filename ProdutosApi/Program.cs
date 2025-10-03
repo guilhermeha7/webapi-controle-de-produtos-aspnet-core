@@ -16,6 +16,8 @@ namespace ProdutosApi
             builder.Services.AddControllers().AddJsonOptions(options=>
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles); //Ignora referência cíclica. Olhar vídeo "Ajustes e Otimizações - Serialização JSON" do curso Web Api Essencial para saber mais
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

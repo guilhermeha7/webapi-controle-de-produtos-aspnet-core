@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
 using ProdutosApi.Models;
+using ProdutosApi.Repositories;
 using System;
 
 namespace ProdutosApi.Controllers
@@ -11,59 +12,64 @@ namespace ProdutosApi.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProductRepository _repository;
         //É necessário definir IConfiguration como dependência para conseguir pegar valores de chaves do arquivo appsettings.json 
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
 
-        public ProductsController(AppDbContext context, IConfiguration configuration, ILogger<ProductsController> logger) //O <T> de ILogger<ProductsController> serve só para dizer de qual classe está vindo o log 
+        public ProductsController(IConfiguration configuration, ILogger<ProductsController> logger, IProductRepository repository) //O <T> de ILogger<ProductsController> serve só para dizer de qual classe está vindo o log 
         {
-            _context = context;
             _configuration = configuration;
             _logger = logger;
+            _repository = repository;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAsync() //ActionResult<T> retorna status codes, além do tipo especificado
+        public ActionResult<IEnumerable<Product>> Get() //ActionResult<T> retorna status codes, além do tipo especificado
         {
             _logger.LogInformation("::::::::::::::: GET /products :::::::::::::::");
-            var products = await _context.Produtos.AsNoTracking().ToListAsync();
 
-            if (products is null)
-            {
-                return NotFound("Nenhum produto foi encontrado");
-            }
-
-            return products;
+            var products = _repository.GetAll();
+            
+            return Ok(products);
         }
 
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método
-        public async Task<ActionResult<Product>> GetAsync(int id)
+        public ActionResult<Product> Get(int id)
         {
-            var product = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+            var product = _repository.GetByIdAsNoTracking(p => p.Id == id);
 
-            if (product is null)
-            {
-                return NotFound("Produto não encontrado");
-            }
+            return Ok(product);
+        }
 
-            return product;
+        [HttpGet("category/{categoryId:int}")]
+        public ActionResult<IEnumerable<Product>> GetProductsFromCategoryId(int categoryId)
+        {
+            IEnumerable<Product> products = _repository.GetProductsFromCategoryId(categoryId);
+            
+            return Ok(products);
         }
 
 
         [HttpPost]
-        public async Task<ActionResult> PostAsync([FromBody] Product product) //No parâmetro do método Post ou Put se coloca o body
+        public ActionResult Post([FromBody] Product product) //No parâmetro do método Post ou Put se coloca o body
         {
             if (product is null)
             {
-                return BadRequest();
+                BadRequest("Não é possível cadastrar uma categoria vazia");
             }
 
-            _context.Produtos.Add(product);
-            await _context.SaveChangesAsync();
+            Product existingProduct = _repository.GetByIdAsNoTracking(p => p.Id == product.Id);
+
+            if (existingProduct != null)
+            {
+                BadRequest("Um produto com esse id já existe no banco de dados");
+            }
+
+            _repository.Create(product);
 
             //Retorna 201 Created, inclui no cabeçalho da resposta a URL do recurso e envia o produto no body da response
             return new CreatedAtRouteResult("GetProduct", new { id = product.Id }, product);
@@ -71,32 +77,37 @@ namespace ProdutosApi.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> PutAsync(int id, Product product)
+        public ActionResult Put(int id, Product product)
         {
             if (id != product.Id)
             {
-                return BadRequest();
+                return BadRequest("Não é possível mudar o valor da chave primária.");
             }
 
-            _context.Entry(product).State = EntityState.Modified; //Marca esta entidade como modificada, para que o EF gere um UPDATE no banco usando o Id dela como chave
-            await _context.SaveChangesAsync();
+            var existingProduct = _repository.GetByIdAsNoTracking(p => p.Id == id);
+
+            if (existingProduct is null)
+            {
+                return NotFound("Produto não encontrado");
+            }
+
+            _repository.Update(product);
 
             return Ok(product); //No parâmetro do método Ok se coloca o vai ser mostrado na response
         }
 
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> DeleteAsync(int id)
+        public ActionResult Delete(int id)
         {
-            var product = await _context.Produtos.FirstOrDefaultAsync(p => p.Id == id);
+            var existingProduct = _repository.GetById(p => p.Id == id);
 
-            if (product is null)
+            if (existingProduct is null)
             {
-                return NotFound("Produto não localizado");
+                return NotFound("Produto não encontrado");
             }
 
-            _context.Produtos.Remove(product);
-            await _context.SaveChangesAsync();
+            _repository.Delete(existingProduct);
 
             return Ok();
         }

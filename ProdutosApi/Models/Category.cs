@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ProdutosApi.Models
 {
@@ -14,6 +15,8 @@ namespace ProdutosApi.Models
         [Required] 
         [StringLength(2000)] 
         public string ImageUrl { get; set; }
+
+        //[JsonIgnore] //Essa propriedade não será convertida de objeto C# para JSON na serialização
         public ICollection<Product>? Products { get; set; } //O ? indica que uma categoria não precisa ter uma lista de produtos associada. Com isso, o ASP.NET não lança exceção se for tentar criar uma categoria sem produtos
 
         public Category()
