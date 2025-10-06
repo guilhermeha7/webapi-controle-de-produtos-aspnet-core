@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
+using ProdutosApi.DTOs;
 using ProdutosApi.Models;
 using ProdutosApi.Repositories;
 using System;
@@ -16,84 +18,88 @@ namespace ProdutosApi.Controllers
         //É necessário definir IConfiguration como dependência para conseguir pegar valores de chaves do arquivo appsettings.json 
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
 
-
-        public ProductsController(IConfiguration configuration, ILogger<ProductsController> logger, IProductRepository repository) //O <T> de ILogger<ProductsController> serve só para dizer de qual classe está vindo o log 
+        public ProductsController(IConfiguration configuration, ILogger<ProductsController> logger, IProductRepository repository, IMapper mapper) //O <T> de ILogger<ProductsController> serve só para dizer de qual classe está vindo o log 
         {
             _configuration = configuration;
             _logger = logger;
             _repository = repository;
+            _mapper = mapper;
         }
 
 
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> Get() //ActionResult<T> retorna status codes, além do tipo especificado
+        public ActionResult<IEnumerable<ProductViewDto>> Get() //ActionResult<T> retorna status codes, além do tipo especificado
         {
             _logger.LogInformation("::::::::::::::: GET /products :::::::::::::::");
 
             var products = _repository.GetAll();
+
+            //var destino = _mapper.Map<Destino>(origem);
+            var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(products);
             
-            return Ok(products);
+            return Ok(productsViewDto);
         }
 
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método
-        public ActionResult<Product> Get(int id)
+        public ActionResult<ProductViewDto> Get(int id)
         {
             var product = _repository.GetByIdAsNoTracking(p => p.Id == id);
 
-            return Ok(product);
+            var productViewDto = _mapper.Map<ProductViewDto>(product);
+
+            return Ok(productViewDto);
         }
 
         [HttpGet("category/{categoryId:int}")]
-        public ActionResult<IEnumerable<Product>> GetProductsFromCategoryId(int categoryId)
+        public ActionResult<IEnumerable<ProductViewDto>> GetProductsFromCategoryId(int categoryId)
         {
             IEnumerable<Product> products = _repository.GetProductsFromCategoryId(categoryId);
-            
-            return Ok(products);
+
+            var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(products);
+
+            return Ok(productsViewDto);
         }
 
 
         [HttpPost]
-        public ActionResult Post([FromBody] Product product) //No parâmetro do método Post ou Put se coloca o body
+        public ActionResult<ProductInputDto> Post([FromBody] ProductInputDto productInputDto) //No parâmetro do método Post ou Put se coloca o body
         {
-            if (product is null)
+            if (productInputDto is null)
             {
-                BadRequest("Não é possível cadastrar uma categoria vazia");
+                return BadRequest("Não é possível cadastrar uma categoria vazia");
             }
 
-            Product existingProduct = _repository.GetByIdAsNoTracking(p => p.Id == product.Id);
-
-            if (existingProduct != null)
-            {
-                BadRequest("Um produto com esse id já existe no banco de dados");
-            }
+            var product = _mapper.Map<Product>(productInputDto);
 
             _repository.Create(product);
 
+            var productViewDto = _mapper.Map<ProductViewDto>(product);
+
             //Retorna 201 Created, inclui no cabeçalho da resposta a URL do recurso e envia o produto no body da response
-            return new CreatedAtRouteResult("GetProduct", new { id = product.Id }, product);
+            return new CreatedAtRouteResult("GetProduct", new { id = productViewDto.Id }, productViewDto);
         }
 
 
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, Product product)
+        public ActionResult<ProductViewDto> Put(int id, ProductInputDto productInputDto)
         {
-            if (id != product.Id)
-            {
-                return BadRequest("Não é possível mudar o valor da chave primária.");
-            }
-
-            var existingProduct = _repository.GetByIdAsNoTracking(p => p.Id == id);
+            var existingProduct = _repository.GetById(p => p.Id == id);
 
             if (existingProduct is null)
             {
                 return NotFound("Produto não encontrado");
             }
 
+            var product = _mapper.Map(productInputDto, existingProduct);
+
             _repository.Update(product);
 
-            return Ok(product); //No parâmetro do método Ok se coloca o vai ser mostrado na response
+            var productViewDto = _mapper.Map<ProductViewDto>(product);
+
+            return Ok(productViewDto); //No parâmetro do método Ok se coloca o vai ser mostrado na response
         }
 
 
