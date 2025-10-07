@@ -1,9 +1,10 @@
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using ProdutosApi.Context;
 using ProdutosApi.DTOs.Mappings;
 using ProdutosApi.Extensions;
 using ProdutosApi.Repositories;
+
 
 namespace ProdutosApi
 {
@@ -16,7 +17,7 @@ namespace ProdutosApi
             // Add services to the container.
             builder.Services.AddAutoMapper(typeof(DTOMappingProfile));
             builder.Services.AddControllers().AddJsonOptions(options=>
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles); //Ignora referência cíclica. Olhar vídeo "Ajustes e Otimizações - Serialização JSON" do curso Web Api Essencial para saber mais
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles).AddNewtonsoftJson(); //Ignora referência cíclica. Olhar vídeo "Ajustes e Otimizações - Serialização JSON" do curso Web Api Essencial para saber mais
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

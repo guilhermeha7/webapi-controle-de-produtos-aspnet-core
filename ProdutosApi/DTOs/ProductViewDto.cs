@@ -27,6 +27,9 @@ namespace ProdutosApi.DTOs
         public int Stock { get; set; }
 
         [Required]
+        public DateTime RegistrationDate { get; set; }
+
+        [Required]
         public int CategoryId { get; set; }
     }
 }

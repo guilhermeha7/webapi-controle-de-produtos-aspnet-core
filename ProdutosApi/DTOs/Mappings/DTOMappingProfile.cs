@@ -10,6 +10,7 @@ namespace ProdutosApi.DTOs.Mappings
         {
             CreateMap<Product, ProductInputDto>().ReverseMap();
             CreateMap<Product, ProductViewDto>().ReverseMap();
+            CreateMap<Product, ProductInputPatchDto>().ReverseMap();
             CreateMap<Category, CategoryInputDto>().ReverseMap();
             CreateMap<Category, CategoryViewDto>().ReverseMap();
         }

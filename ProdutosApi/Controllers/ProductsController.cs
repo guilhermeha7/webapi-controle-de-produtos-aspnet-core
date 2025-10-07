@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
@@ -65,7 +66,7 @@ namespace ProdutosApi.Controllers
 
 
         [HttpPost]
-        public ActionResult<ProductInputDto> Post([FromBody] ProductInputDto productInputDto) //No parâmetro do método Post ou Put se coloca o body
+        public ActionResult<ProductViewDto> Post([FromBody] ProductInputDto productInputDto) //No parâmetro do método Post ou Put se coloca o body
         {
             if (productInputDto is null)
             {
@@ -73,6 +74,7 @@ namespace ProdutosApi.Controllers
             }
 
             var product = _mapper.Map<Product>(productInputDto);
+            product.RegistrationDate = DateTime.Now;
 
             _repository.Create(product);
 
@@ -134,5 +136,39 @@ namespace ProdutosApi.Controllers
         {
             throw new Exception("Erro inesperado");
         }
+
+        [HttpPatch("{id}/UpdatePartial")]
+        public ActionResult<ProductViewDto> Patch(int id, JsonPatchDocument<ProductInputPatchDto> patchDocument) //JsonPatchDocument<Modelo> define que o corpo da requisição receberá um documento patch 
+        {
+            if (patchDocument == null)
+            {
+                return BadRequest("Corpo do documento patch vazio");
+            }
+
+            var product = _repository.GetById(p => p.Id == id);
+
+            if (product is null) 
+            {
+                return NotFound("Produto não encontrado");
+            }
+
+            var productToPatch = _mapper.Map<ProductInputPatchDto>(product); //Passa as propriedades de product para ProductInputPatchDto
+
+            patchDocument.ApplyTo(productToPatch, ModelState); //Esse comando aplica as modificações que vieram de um JSON Patch (um tipo de requisição parcial) sobre o objeto productToPatch
+
+            if(!ModelState.IsValid) 
+            {
+                return BadRequest(ModelState);
+            }
+
+            _mapper.Map(productToPatch, product); //Passa as propriedades de productToPatch para o produto que será atualizado no banco de dados
+            _repository.Update(product);
+
+            var productViewDto = _mapper.Map<ProductViewDto>(product);
+
+            return Ok(productViewDto);
+
+        }
+
     }
 }
