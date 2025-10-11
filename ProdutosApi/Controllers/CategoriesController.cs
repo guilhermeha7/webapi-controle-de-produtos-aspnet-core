@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ProdutosApi.Context;
 using ProdutosApi.DTOs;
 using ProdutosApi.Models;
+using ProdutosApi.Pagination;
 using ProdutosApi.Repositories;
 
 namespace ProdutosApi.Controllers
@@ -31,6 +33,24 @@ namespace ProdutosApi.Controllers
 
             var categoriesViewDto = _mapper.Map<IEnumerable<CategoryViewDto>>(categories);
 
+            return Ok(categoriesViewDto);
+        }
+
+        [HttpGet("pagination")]
+        public ActionResult<IEnumerable<CategoryViewDto>> Get([FromQuery] PaginationParameters paginationParams)
+        {
+            var categories = _repository.GetWithPagination(paginationParams, c => c.Id);
+
+            int currentPage = paginationParams.PageNumber;
+            int pageSize = paginationParams.PageSize;
+            int totalItems = _repository.GetTotalItems();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            PaginationHeaders paginationHeaders = new PaginationHeaders(currentPage, totalPages, pageSize, totalItems);
+        
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(paginationHeaders));
+
+            var categoriesViewDto = _mapper.Map<IEnumerable<CategoryViewDto>>(categories);
             return Ok(categoriesViewDto);
         }
 

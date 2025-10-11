@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ProdutosApi.Context;
 using ProdutosApi.DTOs;
 using ProdutosApi.Models;
+using ProdutosApi.Pagination;
 using ProdutosApi.Repositories;
 using System;
+using System.Linq;
 
 namespace ProdutosApi.Controllers
 {
@@ -39,9 +42,28 @@ namespace ProdutosApi.Controllers
 
             //var destino = _mapper.Map<Destino>(origem);
             var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(products);
-            
+
             return Ok(productsViewDto);
         }
+
+
+        [HttpGet("pagination")]
+        public ActionResult<IEnumerable<ProductViewDto>> Get([FromQuery] PaginationParameters paginationParams)
+        {
+            var products = _repository.GetWithPagination(paginationParams, p => p.Id);
+
+            int currentPage = paginationParams.PageNumber;
+            int pageSize = paginationParams.PageSize;
+            int totalItems = _repository.GetTotalItems();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize); //(double) força o resultado a vir com casas decimais, tipo 23 / 10 = 2.3. e o Math.Ceiling() arredonda pra cima — ou seja, 2.3 vira 3. Em português claro: “se sobrar algum item, cria mais uma página pra ele”.
+
+            PaginationHeaders paginationHeaders = new PaginationHeaders(currentPage, totalPages, pageSize, totalItems);
+
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(paginationHeaders)); //Converte um objeto C# em JSON
+
+            var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(products);
+            return Ok(productsViewDto);
+        }   
 
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método
@@ -53,6 +75,7 @@ namespace ProdutosApi.Controllers
 
             return Ok(productViewDto);
         }
+
 
         [HttpGet("category/{categoryId:int}")]
         public ActionResult<IEnumerable<ProductViewDto>> GetProductsFromCategoryId(int categoryId)
@@ -137,6 +160,7 @@ namespace ProdutosApi.Controllers
             throw new Exception("Erro inesperado");
         }
 
+
         [HttpPatch("{id}/UpdatePartial")]
         public ActionResult<ProductViewDto> Patch(int id, JsonPatchDocument<ProductInputPatchDto> patchDocument) //JsonPatchDocument<Modelo> define que o corpo da requisição receberá um documento patch 
         {
@@ -167,8 +191,6 @@ namespace ProdutosApi.Controllers
             var productViewDto = _mapper.Map<ProductViewDto>(product);
 
             return Ok(productViewDto);
-
         }
-
     }
 }
