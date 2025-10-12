@@ -1,4 +1,4 @@
-﻿namespace ProdutosApi.Pagination
+﻿namespace ProdutosApi.Parameters
 {
     public class PaginationParameters
     {
@@ -13,7 +13,7 @@
             }
             set
             {
-                _pageSize = (value > maxPageSize) ? maxPageSize : value; //(condição) ? valorSeVerdadeiro : valorSeFalso
+                _pageSize = value > maxPageSize ? maxPageSize : value; //(condição) ? valorSeVerdadeiro : valorSeFalso
             }
         }
     }

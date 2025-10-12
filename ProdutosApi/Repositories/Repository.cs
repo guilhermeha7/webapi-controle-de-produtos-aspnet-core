@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProdutosApi.Context;
-using ProdutosApi.Pagination;
+using ProdutosApi.Parameters;
 using System.Linq.Expressions;
 
 namespace ProdutosApi.Repositories
@@ -17,15 +17,6 @@ namespace ProdutosApi.Repositories
         public IEnumerable<T> GetAll()
         {
             return _context.Set<T>().AsNoTracking().ToList();
-        }
-
-        public IEnumerable<T> GetWithPagination(PaginationParameters paginationParams, Expression<Func<T, object>> orderBy) //Retorna uma página apenas na verdade da tabela escolhida
-        {
-            return _context.Set<T>()
-                .AsNoTracking()
-                .OrderBy(orderBy)
-                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                .Take(paginationParams.PageSize).ToList();
         }
 
         public T GetById(Expression<Func<T, bool>> predicate)

@@ -1,4 +1,4 @@
-﻿using ProdutosApi.Pagination;
+﻿using ProdutosApi.Parameters;
 using System.Linq.Expressions;
 
 namespace ProdutosApi.Repositories
@@ -9,7 +9,6 @@ namespace ProdutosApi.Repositories
         T GetById(Expression<Func<T, bool>> predicate); //Func guarda um método (é um delegate portanto) que, nesse caso, recebe um objeto T e retorna um boolean com base no predicado  
         T GetByIdAsNoTracking(Expression<Func<T, bool>> predicate);
         IEnumerable<T> GetAll();
-        IEnumerable<T> GetWithPagination(PaginationParameters paginationParams, Expression<Func<T, object>> orderBy);
         int GetTotalItems();
         void Create(T entity);
         void Update(T entity);

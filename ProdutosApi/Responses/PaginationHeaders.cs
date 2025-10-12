@@ -1,4 +1,4 @@
-﻿namespace ProdutosApi.Pagination
+﻿namespace ProdutosApi.Responses
 {
     public class PaginationHeaders
     {

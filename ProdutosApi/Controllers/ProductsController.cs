@@ -7,8 +7,9 @@ using Newtonsoft.Json;
 using ProdutosApi.Context;
 using ProdutosApi.DTOs;
 using ProdutosApi.Models;
-using ProdutosApi.Pagination;
+using ProdutosApi.Parameters;
 using ProdutosApi.Repositories;
+using ProdutosApi.Responses;
 using System;
 using System.Linq;
 
@@ -46,14 +47,13 @@ namespace ProdutosApi.Controllers
             return Ok(productsViewDto);
         }
 
-
-        [HttpGet("pagination")]
-        public ActionResult<IEnumerable<ProductViewDto>> Get([FromQuery] PaginationParameters paginationParams)
+        [HttpGet("filtering")]
+        public ActionResult<IEnumerable<Product>> Get([FromQuery] ProductParameters productParams)
         {
-            var products = _repository.GetWithPagination(paginationParams, p => p.Id);
+            var filteredProductsPage = _repository.GetFilteredProducts(productParams);
 
-            int currentPage = paginationParams.PageNumber;
-            int pageSize = paginationParams.PageSize;
+            int currentPage = productParams.PageNumber;
+            int pageSize = productParams.PageSize;
             int totalItems = _repository.GetTotalItems();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize); //(double) força o resultado a vir com casas decimais, tipo 23 / 10 = 2.3. e o Math.Ceiling() arredonda pra cima — ou seja, 2.3 vira 3. Em português claro: “se sobrar algum item, cria mais uma página pra ele”.
 
@@ -61,9 +61,9 @@ namespace ProdutosApi.Controllers
 
             Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(paginationHeaders)); //Converte um objeto C# em JSON
 
-            var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(products);
+            var productsViewDto = _mapper.Map<IEnumerable<ProductViewDto>>(filteredProductsPage);
             return Ok(productsViewDto);
-        }   
+        }
 
 
         [HttpGet("{id:int}", Name = "GetProduct")] //O valor digitado pelo usuário é capturado na variável id e injetado automaticamente no parâmetro id do método

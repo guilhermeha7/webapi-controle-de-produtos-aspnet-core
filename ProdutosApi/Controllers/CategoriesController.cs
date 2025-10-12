@@ -6,8 +6,9 @@ using Newtonsoft.Json;
 using ProdutosApi.Context;
 using ProdutosApi.DTOs;
 using ProdutosApi.Models;
-using ProdutosApi.Pagination;
+using ProdutosApi.Parameters;
 using ProdutosApi.Repositories;
+using ProdutosApi.Responses;
 
 namespace ProdutosApi.Controllers
 {
@@ -36,21 +37,21 @@ namespace ProdutosApi.Controllers
             return Ok(categoriesViewDto);
         }
 
-        [HttpGet("pagination")]
-        public ActionResult<IEnumerable<CategoryViewDto>> Get([FromQuery] PaginationParameters paginationParams)
-        {
-            var categories = _repository.GetWithPagination(paginationParams, c => c.Id);
 
-            int currentPage = paginationParams.PageNumber;
-            int pageSize = paginationParams.PageSize;
-            int totalItems = _repository.GetTotalItems();
-            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        [HttpGet("filtering")]
+        public ActionResult<IEnumerable<Category>> Get([FromQuery] CategoryParameters categoryParams)
+        {
+            var (filteredCategoriesPage, totalItems) = _repository.GetFilteredCategories(categoryParams);
+
+            int currentPage = categoryParams.PageNumber;
+            int pageSize = categoryParams.PageSize;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize); //(double) força o resultado a vir com casas decimais, tipo 23 / 10 = 2.3. e o Math.Ceiling() arredonda pra cima — ou seja, 2.3 vira 3. Em português claro: “se sobrar algum item, cria mais uma página pra ele”.
 
             PaginationHeaders paginationHeaders = new PaginationHeaders(currentPage, totalPages, pageSize, totalItems);
-        
+
             Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(paginationHeaders));
 
-            var categoriesViewDto = _mapper.Map<IEnumerable<CategoryViewDto>>(categories);
+            var categoriesViewDto = _mapper.Map<IEnumerable<CategoryViewDto>>(filteredCategoriesPage);
             return Ok(categoriesViewDto);
         }
 
